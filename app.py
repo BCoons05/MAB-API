@@ -45,12 +45,14 @@ class Vehicle(db.Model):
     sale_price = db.Column(db.Integer)
     miles = db.Column(db.Integer)
     purchase_location = db.Column(db.String)
+    purchase_date = db.Column(db.DATE)
+    sold_date = db.Column(db.DATE)
     sold = db.Column(db.Bool)
     repairs = db.relationship('Repair')
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user = db.relationship("User", back_populates="vehicles")
 
-    def __init__(self, year, make, model, purchase_price, list_price, sale_price, miles, purchase_location, sold, user_id):
+    def __init__(self, year, make, model, purchase_price, list_price, sale_price, miles, purchase_location, purchase_date, sold_date, sold, user_id):
         self.year = year
         self.make = make
         self.model = model
@@ -58,6 +60,9 @@ class Vehicle(db.Model):
         self.list_price = list_price
         self.sale_price = sale_price
         self.miles = miles
+        self.purchase_location = purchase_location
+        self.purchase_date = purchase_date
+        self.sold_date = sold_date
         self.sold = sold
         self.user_id = user_id
 
@@ -70,15 +75,17 @@ class Repair(db.Model):
     parts_cost = db.Column(db.Integer)
     labor_cost = db.Column(db.Integer)
     labor_hours = db.Column(db.Integer)
+    date = db.Column(db.DATE)
     vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicles.id'))
     vehicle = db.relationship("Vehicle", back_populates="repairs")
 
-    def __init__(self, shop, work_description, parts_cost, labor_cost, labor_hours, location, vehicle_id):
+    def __init__(self, shop, work_description, parts_cost, labor_cost, labor_hours, date, vehicle_id):
         self.shop = shop
         self.work_description = work_description
         self.parts_cost = parts_cost
         self.labor_cost = labor_cost
         self.labor_hours = labor_hours
+        self.date = date
         self.location = location
         self.vehicle_id = vehicle_id
 
@@ -88,11 +95,11 @@ class UserSchema(ma.Schema):
 
 class VehicleSchema(ma.Schema):
     class Meta:
-        fields = ("id", "year", "make", "model", "purchase_price", "list_price", "sale_price", "miles", "purchase_location", "sold", "user_id")
+        fields = ("id", "year", "make", "model", "purchase_price", "list_price", "sale_price", "miles", "purchase_location", "purchase_date", "sold_date", "sold", "user_id")
 
 class RepairSchema(ma.Schema):
     class Meta:
-        fields = ("id", "shop", "work_description", "parts_cost", "labor_cost", "labor_hours", "vehicle_id")
+        fields = ("id", "shop", "work_description", "parts_cost", "labor_cost", "labor_hours", "date", "vehicle_id")
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
@@ -182,10 +189,12 @@ def add_vehicle():
     sale_price = request.json["sale_price"]
     miles = request.json["miles"]
     purchase_location = request.json["purchase_location"]
+    purchase_date = request.json["purchase_date"]
+    sold_date = request.json["sold_date"]
     sold = request.json["sold"]
     user_id = request.json["user_id"]
 
-    new_vehicle = Vehicle(year, make, model, purchase_price, list_price, sale_price, miles, purchase_location, sold, user_id)
+    new_vehicle = Vehicle(year, make, model, purchase_price, list_price, sale_price, miles, purchase_location, purchase_date, sold_date, sold, user_id)
 
     db.session.add(new_vehicle)
     db.session.commit()
@@ -201,9 +210,10 @@ def add_repair():
     parts_cost = request.json["parts_cost"]
     labor_cost = request.json["labor_cost"]
     labor_hours = request.json["labor_hours"]
+    date = request.json["date"]
     vehicle_id = request.json["vehicle_id"]
 
-    new_repair = Repair(shop, work_description, parts_cost, labor_cost, labor_hours, vehicle_id)
+    new_repair = Repair(shop, work_description, parts_cost, labor_cost, labor_hours, date, vehicle_id)
 
     db.session.add(new_repair)
     db.session.commit()
