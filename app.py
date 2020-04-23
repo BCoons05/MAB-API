@@ -157,10 +157,18 @@ def get_all_Vehicles():
 #GET repairs by vehicle id
 @app.route("/repairs/<id>", methods=["GET"])
 def get_repairs(id):
-    all_repairs = Repair.query.filter(Repair.vehicle_id == id).all()
-    repairResult = repairs_schema.dump(all_repairs)
+    vehicle_repairs = Repair.query.filter(Repair.vehicle_id == id).all()
+    repairResult = repairs_schema.dump(vehicle_repairs)
 
     return jsonify(repairResult)
+
+#GET all repairs TODO make this by search params
+@app.route("/repairs", methods=["GET"])
+def get_all_repairs():
+    all_repairs = Repair.query.all()
+    repairsResult = repairs_schema.dump(all_repairs)
+
+    return jsonify(repairsResult)
 
 
 # POST new user
@@ -221,17 +229,17 @@ def add_repair():
     repair = Repair.query.get(new_repair.vehicle_id)
     return repair_schema.jsonify(repair)
 
-# PUT/PATCH by ID -- Not sure what we would patch at the moment, I can update this if I find a use
-# @app.route("/alert/<id>", methods=["PATCH"])
-# def delete_alert(id):
-#     alert = Alert.query.get(id)
+# PUT/PATCH by ID -- Toggle sold TODO verify this, haven't done patch in a while
+@app.route("/vehicle/<id>", methods=["PATCH"])
+def toggle_sold(id):
+    vehicle = Vehicle.query.get(id)
 
-#     new_alert = request.json["alert"]
+    new_sale = request.json["sold"]
 
-#     todo.done = new_car
+    vehicle.sold = new_sale
 
-#     db.session.commit()
-#     return car.jsonify(alert)
+    db.session.commit()
+    return vehicle.jsonify(vehicle)
 
 # DELETE Vehicle
 @app.route("/vehicle/<id>", methods=["DELETE"])
