@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
 from flask_heroku import Heroku
 from environs import Env
+
 import os
 
 
@@ -14,10 +15,12 @@ heroku = Heroku(app)
 env = Env()
 env.read_env()
 DATABASE_URL = env("DATABASE_URL")
+IMAGE_UPLOADS = env("IMAGE_UPLOADS")
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "app.sqlite")
 # app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+app.config["IMAGE_UPLOADS"] = IMAGE_UPLOADS
 
 
 db = SQLAlchemy(app)
@@ -29,6 +32,7 @@ class User(db.Model):
     name = db.Column(db.String, nullable = False)
     email = db.Column(db.String, nullable = False)
     inventory = db.relationship('Vehicle')
+    images = db.relationship('Image')
 
     def __init__(self, name, email):
         self.name = name
@@ -88,6 +92,8 @@ class Repair(db.Model):
         self.date = date
         self.location = location
         self.vehicle_id = vehicle_id
+
+
 
 class UserSchema(ma.Schema):
     class Meta:
@@ -269,6 +275,20 @@ def delete_user(id):
     return jsonify("User Deleted")
 
 # TODO get vehicle or repairs by year, make, model, price range, purchase date, sale date, current inventory, etc
+
+#Images
+@app.route("/upload_image", methods=["GET", "POST"])
+def upload_image():
+
+    if request.method== "POST":
+        if request.files:
+            image = request.files["image"]
+            image.save(os.path.join(app.config["IMAGE_UPLOADS"], image.filename))
+            print("image saved")
+            return redirect(request.url)
+
+    # TODO this is the page where we are uploading, so I need to change it
+    return render_template("public/upload_image.html")
 
 
 if __name__ == "__main__":
